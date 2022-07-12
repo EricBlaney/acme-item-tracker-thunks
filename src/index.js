@@ -1,13 +1,14 @@
 import React, { Component } from 'react';
 //import { render } from 'react-dom';
 import { createRoot } from 'react-dom/client';
-import axios from 'axios';
 import Nav from './Nav';
 import Users from './Users';
 import Things from './Things';
 import Home from './Home';
 import store from './store';
 import { Provider, connect } from 'react-redux';
+import { loadData } from './store';
+
 
 const root = createRoot(document.querySelector('#app'));
 
@@ -51,19 +52,8 @@ const mapDispatch = (dispatch)=> {
     setView: (view)=> {
       dispatch({ type: 'SET_VIEW', view });
     },
-    loadData: async()=> {
-      const responses = await Promise.all([
-        axios.get('/api/users'),
-        axios.get('/api/things'),
-      ]);
-      dispatch({
-        type: 'SET_USERS',
-        users: responses[0].data
-      });
-      dispatch({
-        type: 'SET_THINGS',
-        things: responses[1].data
-      });
+    loadData: () => {
+      dispatch(loadData());
     }
   };
 };

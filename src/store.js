@@ -3,6 +3,7 @@ import logger from 'redux-logger';
 import thunk from 'redux-thunk';
 import axios from 'axios';
 
+
 const initialState = {
   view: window.location.hash.slice(1),
   users: [],
@@ -25,6 +26,9 @@ const usersReducer = (state = [], action)=> {
   }
   if(action.type === 'CREATE_USER'){
     return [...state, action.user ]; 
+  }
+  if(action.type === 'UPDATE_USER'){
+    return state.map( user => user.id !== action.user.id ? user : action.user)
   }
   return state;
 };
@@ -57,16 +61,61 @@ const updateThing = (thing)=> {
     dispatch({ type: 'UPDATE_THING', thing });
   };
 };
+const updateUser = (user)=> {
+  return async(dispatch)=> {
+    user = (await axios.put(`/api/users/${user.id}`, user)).data;
+    dispatch({ type: 'UPDATE_USER', user });
+  };
+};
 const deleteThing = (thing)=> {
   return async(dispatch)=> {
     await axios.delete(`/api/things/${thing.id}`);
     dispatch({ type: 'DELETE_THING', thing });
   };
 };
+const createUser = (user) => {
+  return async(dispatch) => {
+    await axios.post('/api/users', {name: user.name}).data;
+    dispatch({ type: 'CREATE_USER', user})
+  }
+}
+
+const createThing = (thing) => {
+  return async(dispatch) => {
+    await axios.post('/api/things', {name: thing.name}).data;
+    dispatch({type:'CREATE_THING', thing})
+  }
+}
+
+const removeThingFromUser = (thing) => {
+  return async(dispatch) => {
+    thing = {...thing, userId: null}
+    const updatedThing = (await axios.put(`/api/things/${thing.id}`, thing)).data
+    dispatch({ type: 'UPDATE_THING', thing: updatedThing});
+  }
+}
+
+const deleteUser = (user) => {
+  return async(dispatch) => {
+    await axios.delete(`/api/users/${user.id}`);
+    dispatch({ type: 'DELETE_USER', user });
+  }
+}
+const loadData = () => {
+  return async(dispatch) => {
+    const responses = await Promise.all([
+      axios.get('/api/users'),
+      axios.get('/api/things')
+    ]);
+    dispatch({ type: 'SET_USERS', users: responses[0].data});
+    dispatch({ type: 'SET_THINGS', things: responses[1].data});
+  }
+}
+
 
 const store = createStore(reducer, applyMiddleware(logger, thunk));
 
-export { deleteThing, updateThing };
+export { deleteThing, updateThing, loadData, updateUser, createThing, createUser, deleteUser, removeThingFromUser };
 
 export default store;
 

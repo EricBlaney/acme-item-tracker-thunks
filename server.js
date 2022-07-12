@@ -29,14 +29,39 @@ app.post('/api/things', async(req, res, next)=> {
 
 app.put('/api/things/:id', async(req, res, next)=> {
   try {
-    const thing = await Thing.findByPk(req.params.id);
-    await thing.update(req.body);
-    res.send(thing);
+    const thing = await Thing.findByPk(req.params.id);  
+    if(thing.userId) {
+      const users_things = await Thing.findAll({
+        where: {
+          userId: req.body.userId
+        }}
+      )
+      if (users_things.length > 2) {
+        throw new Error('User has too many things')
+      } else {
+        await thing.update(req.body);
+        res.send(thing);
+      }
+    } else {
+      await thing.update(req.body);
+      res.send(thing);
+    }
   }
   catch(ex){
     next(ex);
   }
 });
+
+app.put('/api/users/:id', async(req,res,next) => {
+  try{
+    const user = await User.findByPk(req.params.id);
+    await user.update(req.body);
+    res.send(user);
+  }
+  catch(ex){
+    next(ex);
+  }
+})
 
 app.delete('/api/users/:id', async(req, res, next)=> {
   try {
