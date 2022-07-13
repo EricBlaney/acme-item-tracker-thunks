@@ -30,16 +30,6 @@ Thing.addHook('beforeValidate', (thing) => {
   if(!thing.userId){
     thing.userId = null;
   }
-  if(thing.userId) {
-    const users_things = Thing.findAll({
-      where: {
-        userId: thing.userId
-      }}
-    )
-    if (users_things.length > 2) {
-      return Promise.reject(new Error("Use has too many items already!"))
-    }
-  }
 });
 
 module.exports = {
