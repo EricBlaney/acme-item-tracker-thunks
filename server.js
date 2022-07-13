@@ -20,7 +20,20 @@ app.post('/api/users', async(req, res, next)=> {
 
 app.post('/api/things', async(req, res, next)=> {
   try {
-    res.status(201).send(await Thing.create(req.body));
+    if(req.body.userId) {
+      const users_things = await Thing.findAll({
+        where: {
+          userId: req.body.userId
+        }}
+      )
+      if (users_things.length > 2) {
+        throw new Error('User has too many things')
+      } else {
+        res.status(201).send(await Thing.create(req.body));
+      }
+    } else {
+      res.status(201).send(await Thing.create(req.body));
+    }
   }
   catch(ex){
     next(ex);
@@ -30,7 +43,7 @@ app.post('/api/things', async(req, res, next)=> {
 app.put('/api/things/:id', async(req, res, next)=> {
   try {
     const thing = await Thing.findByPk(req.params.id);  
-    if(thing.userId) {
+    if(req.body.userId) {
       const users_things = await Thing.findAll({
         where: {
           userId: req.body.userId
